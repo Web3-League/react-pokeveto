@@ -1,0 +1,9 @@
+/* src/components/custom/styles/CustomBox.css */
+.custom-box {
+  padding: 10px;
+  border: 1px solid #cdd2d3;
+  border-radius: 4px;
+  background-color: #fff;
+  height: 100%;
+}
+

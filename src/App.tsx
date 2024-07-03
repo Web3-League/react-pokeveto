@@ -1,26 +1,33 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React, { useContext } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import Register from './auth/register'; // Ensure this path is correct
+import Login from './auth/login';
+import { AuthProvider, AuthContext } from './context/AuthContext';
+import Logout from './auth/logout';
+import HomePage from './page/HomePage';
 
-function App() {
+const PrivateRoute = ({ component: Component }: { component: React.ComponentType }) => {
+  const { token } = useContext(AuthContext) ?? {};
+  console.log('Token in PrivateRoute:', token);
+  return token ? <Component /> : <Navigate to="/login" />;
+};
+
+const App: React.FC = () => {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <AuthProvider>
+      <Router>
+        <Routes>
+          <Route path="/login" element={<Login handleLogin={function (): Promise<void> {
+            throw new Error('Function not implemented.');} }  />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/home" element={<PrivateRoute component={HomePage} />} />
+          <Route path="/" element={<Navigate to="/login" />} />
+          <Route path="/logout" element={<Logout />} />
+        </Routes>
+      </Router>
+    </AuthProvider>
   );
-}
+};
 
 export default App;
+
