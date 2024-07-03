@@ -29,9 +29,10 @@ const CustomTraitement: React.FC<CustomTraitementProps> = ({ userId, selectedAni
             try {
                 let response;
                 if (userRoles?.includes('ROLE_ADMIN')) {
-                    response = await axios.get('http://localhost:8083/api/veterinaire/Admin-traitements', { params: { animal_name: selectedAnimalName } });
+                    console.log('animal id :', selectedAnimalName)
+                    response = await axios.get('http://localhost:8083/api/veterinaire/Admin-traitement/'+ selectedAnimalName );
                 } else {
-                    response = await axios.get(`http://localhost:8083/api/veterinaire/traitements/${userId}/${selectedAnimalName}`);
+                    response = await axios.get(`http://localhost:8083/api/veterinaire/traitement/${userId}/${selectedAnimalName}` );
                 }
                 setTraitements(response.data);
             } catch (error) {
@@ -66,7 +67,7 @@ const CustomTraitement: React.FC<CustomTraitementProps> = ({ userId, selectedAni
         event.preventDefault();
         try {
             if (isEditMode) {
-                const response = await axios.post(`http://localhost:8083/api/veterinaire/traitements/`+ selectedAnimalName, {  animal_name: selectedAnimalName ,traitement: newTraitementValue});
+                const response = await axios.post(`http://localhost:8083/api/veterinaire/traitements/`, {  animal_name: selectedAnimalName ,traitement: newTraitementValue});
                 const data = response.data;
                 setTraitements([...traitements, data]);
                 setIsEditMode(false);

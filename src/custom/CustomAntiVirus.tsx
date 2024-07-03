@@ -134,6 +134,13 @@ const CustomAntiVirus: React.FC<CustomAntiVirusProps> = ({ userId, selectedAnima
                     <option value="">Select an action</option>
                     <option value="edit-mode">Edit Mode</option>
                 </select>
+                <ul>
+                    {antiVirus.map((antiVirus, index) => (
+                        <li key={index}>
+                            {antiVirus.anti_virus.toString()}
+                        </li>
+                    ))}
+                </ul>
                 {isEditMode && (
                     <select value={newAntiVirusValue} onChange={handleBooleanChange}>
                         <option value="">Select a value</option>

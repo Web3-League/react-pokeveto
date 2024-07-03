@@ -20,14 +20,16 @@ const CustomAnimalName: React.FC<CustomAnimalNameProps> = ({ selectedRace, selec
     useEffect(() => {
         const fetchAnimalNames = async () => {
             try {
-                let response;
-                if (userRoles?.includes('ROLE_ADMIN')) {
-                    response = await axios.get(`http://localhost:8083/api/veterinaire/allanimalname/`+ selectedRace);
-                } else {
-                    let id = userId;
-                    response = await axios.get(`http://localhost:8083/api/veterinaire/animalname/${id}/`+ selectedRace);
-                }
-                setAnimalNames(Array.isArray(response.data) ? response.data : []);
+                    let response;
+
+                    if (userRoles?.includes('ROLE_ADMIN') && selectedRace) {
+                        response = await axios.get(`http://localhost:8083/api/veterinaire/allanimalname/` + selectedRace);
+                    } else {
+                        let id = userId;
+                        response = await axios.get(`http://localhost:8083/api/veterinaire/animalname/${id}/` + selectedRace);
+                    }
+
+                    setAnimalNames(Array.isArray(response.data) ? response.data : []);
             } catch (error) {
                 console.error('Error fetching animal names:', error);
                 setAnimalNames([]);
@@ -65,9 +67,11 @@ const CustomAnimalName: React.FC<CustomAnimalNameProps> = ({ selectedRace, selec
             <select value={selectedAnimalName} onChange={handleChange}>
                 <option value="">Select Animal Name</option>
                 {animalNames.map((animal) => (
-                    <option key={animal.id} value={animal.id}>
-                        {animal.animal_name}
-                    </option>
+                    animal.animal_name != null ? (
+                        <option key={animal.id} value={animal.id}>
+                            {animal.animal_name}
+                        </option>
+                    ) : null
                 ))}
             </select>
             <form onSubmit={handleSubmit}>

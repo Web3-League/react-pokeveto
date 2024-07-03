@@ -31,7 +31,7 @@ const CustomAntiPuce: React.FC<CustomAntiPuceProps> = ({ userId, selectedAnimalN
             try {
                 let response;
                 if (userRoles?.includes('ROLE_ADMIN')) {
-                    response = await axios.get('http://localhost:8083/api/veterinaire/antipuces', { params: { nameId: selectedAnimalName } });
+                    response = await axios.get('http://localhost:8083/api/veterinaire/Admin-antipuces/'+ selectedAnimalName , { params: { name: selectedAnimalName } });
                 } else {
                     response = await axios.get(`http://localhost:8083/api/veterinaire/antipuces/${userId}/${selectedAnimalName}`);
                 }
@@ -117,13 +117,18 @@ const CustomAntiPuce: React.FC<CustomAntiPuceProps> = ({ userId, selectedAnimalN
                 <select value={selectedAntiPuce} onChange={handleChange}>
                     <option value=''>Select an antipuce</option>
                     {antiPuces.map((antipuce) => (
-                        <option key={antipuce.id} value={antipuce.id}>{antipuce.anti_puce.toString()}</option>
+                        antipuce.anti_puce != null ?( <option key={antipuce.id} value={antipuce.id}>{antipuce.anti_puce.toString()}</option> ) : null
                     ))}
                 </select>
                 <select onChange={handleSecondDropdownChange}>
                     <option value=''>Select an action</option>
                     <option value='edit-mode'>Edit</option>
                 </select>
+                <ul>
+                    {antiPuces.map((antipuce, index) => (
+                        antipuce.anti_puce != null ?( <li key={index}>{antipuce.anti_puce.toString()}</li> ) : null
+                    ))}
+                </ul>
                 {isEditMode && (
                     <select value={newAntiPuceValue} onChange={handleBooleanChange}>
                         <option value=''>Select a value</option>

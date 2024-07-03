@@ -9,7 +9,8 @@ interface CustomAntiTiqueProps {
 }
 
 interface AntiTique {
-   nameId: string;
+    nameId: string;
+    anti_tique: boolean;
 }
 
 const CustomAntiTique: React.FC<CustomAntiTiqueProps> = ({ userId, selectedAnimalName }) => {
@@ -29,7 +30,7 @@ const CustomAntiTique: React.FC<CustomAntiTiqueProps> = ({ userId, selectedAnima
             try {
                 let response;
                 if (userRoles?.includes('ROLE_ADMIN')) {
-                    response = await axios.get('http://localhost:8083/api/veterinaire/Admin-antitiques', { params: { name: selectedAnimalName } });
+                    response = await axios.get('http://localhost:8083/api/veterinaire/Admin-antitiques/' + selectedAnimalName, { params: { name: selectedAnimalName } });
                 } else {
                     response = await axios.get(`http://localhost:8083/api/veterinaire/antitiques/${userId}/${selectedAnimalName}`);
                 }
@@ -122,6 +123,14 @@ const CustomAntiTique: React.FC<CustomAntiTiqueProps> = ({ userId, selectedAnima
                 <option value="edit-mode">Edit Mode</option>
                 <option value="delete-mode">Delete Mode</option>
             </select>
+            <ul>
+                {antiTiques.map((antiTique, index) => (
+                    antiTique.anti_tique != null?(
+                    <li key={index}>
+                        {antiTique.anti_tique.toString()}
+                    </li>):null
+                ))}
+            </ul>
             {isEditMode && (
                 <div>
                     <div>SELECTED ANIMAL NAME: {selectedAnimalName}</div>
