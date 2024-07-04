@@ -1,6 +1,7 @@
 import axios from 'axios';
 import React, { useState, useEffect } from 'react';
 import useToken from '../hooks/useToken';
+import './styles/CustomAnimalName.css';
 
 interface AnimalName {
     id: string;
@@ -61,9 +62,8 @@ const CustomAnimalName: React.FC<CustomAnimalNameProps> = ({ selectedRace, selec
     };
 
     return (
-        <div>
+        <div id="custom-animal-file">
             <h2>Animal Name</h2>
-            <div>SELECTED ANIMAL ID: {selectedRace}</div>
             <select value={selectedAnimalName} onChange={handleChange}>
                 <option value="">Select Animal Name</option>
                 {animalNames.map((animal) => (

@@ -112,7 +112,6 @@ const CustomAntiPuce: React.FC<CustomAntiPuceProps> = ({ userId, selectedAnimalN
     return (
         <div>
             <h2>AntiPuces</h2>
-            <div>SELECTED RACE ID: {selectedAnimalName}</div>
             <form onSubmit={isEditMode ? handleUpdate : handleSubmit}>
                 <select value={selectedAntiPuce} onChange={handleChange}>
                     <option value=''>Select an antipuce</option>

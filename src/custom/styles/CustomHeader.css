@@ -1,0 +1,19 @@
+h1{
+    text-align: center;
+}
+
+.custom-logo{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.logo-girafe{
+    justify-content: flex-start;
+    background-image: url(../../logo/girafe.svg);
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: cover;
+    width: 100px;
+    height: 100px;
+    margin: 0;
+}

@@ -11,7 +11,6 @@ import CustomAntiTique from '../custom/CustomAntiTique';
 import CustomAntiPuce from '../custom/CustomAntiPuce';
 import CustomAntiVirus from '../custom/CustomAntiVirus';
 import CustomAntiBacterie from '../custom/CustomAntiBacterie';
-import UserProfile from '../custom/UserProfile';
 import useToken from '../hooks/useToken';
 import CustomAnimalName from '../custom/CustomAnimalName';
 
@@ -33,29 +32,45 @@ const HomePage: React.FC = () => {
   return (
     <CustomGrid>
       <CustomBox gridColumn="1 / span 12" gridRow="1 / span 2">
-        <CustomHeader userId={userId ?? ''} selectedRace={selectedRace} />
+        <CustomHeader userId={userId ?? ''} selectedAnimalName={selectedAnimalName} selectedRace={selectedRace} isAdmin={userRoles?.includes('ROLE_ADMIN') ?? false} />
       </CustomBox>
       <CustomBox gridColumn="1 / span 12" gridRow="3 / span 2">
-        <CustomRace selectedRace={selectedRace} setSelectedRace={setSelectedRace} userId={userId ?? ''} />
-        <CustomAnimalName selectedRace={selectedRace} selectedAnimalName={selectedAnimalName} setSelectedAnimalName={setSelectedAnimalName} />
+        <CustomGrid>
+          <CustomBox gridColumn=" 1" gridRow="1 / span 2">
+            <CustomRace selectedRace={selectedRace} setSelectedRace={setSelectedRace} userId={userId ?? ''} />
+          </CustomBox>
+          <CustomBox gridColumn=" 2" gridRow="1 / span 2 " >
+            <CustomAnimalName selectedRace={selectedRace} selectedAnimalName={selectedAnimalName} setSelectedAnimalName={setSelectedAnimalName} />
+          </CustomBox>
+        </CustomGrid>
       </CustomBox>
-      <CustomBox gridColumn="1 / span 12" gridRow="5 / span 2">
-        <CustomTraitement userId={userId ?? ''} selectedAnimalName={selectedAnimalName}  />
+      <CustomBox gridColumn="1/ span 12" gridRow="5 / span 2">
+        <CustomBox gridColumn="12" gridRow="1">
+          <CustomTraitement userId={userId ?? ''} selectedAnimalName={selectedAnimalName} />
+        </CustomBox>
       </CustomBox>
       <CustomBox gridColumn="1 / span 12" gridRow="7 / span 2">
-        <CustomAntiTique  userId={userId ?? ''} selectedAnimalName={selectedAnimalName} />
+        <CustomGrid>
+          <CustomBox gridColumn="1" gridRow="1 / span 2">
+            <CustomAntiTique userId={userId ?? ''} selectedAnimalName={selectedAnimalName} />
+          </CustomBox>
+          <CustomBox gridColumn="2" gridRow="1 / span 2">
+            <CustomAntiPuce selectedRace={selectedRace} userId={userId ?? ''} selectedAnimalName={selectedAnimalName} />
+          </CustomBox>
+        </CustomGrid>
       </CustomBox>
       <CustomBox gridColumn="1 / span 12" gridRow="9 / span 2">
-        <CustomAntiPuce selectedRace={selectedRace} userId={userId ?? ''} selectedAnimalName={selectedAnimalName} />
+        <CustomGrid>
+          <CustomBox gridColumn="1" gridRow="1 / span 2">
+            <CustomAntiVirus userId={userId ?? ''} selectedAnimalName={selectedAnimalName} />
+          </CustomBox>
+          <CustomBox gridColumn="2" gridRow="1 / span 2">
+            <CustomAntiBacterie userId={userId ?? ''} selectedAnimalName={selectedAnimalName} />
+          </CustomBox>
+        </CustomGrid>
       </CustomBox>
       <CustomBox gridColumn="1 / span 12" gridRow="11 / span 2">
-        <CustomAntiVirus  userId={userId ?? ''} selectedAnimalName={selectedAnimalName}/>
-      </CustomBox>
-      <CustomBox gridColumn="1 / span 12" gridRow="13 / span 2">
-        <CustomAntiBacterie userId={userId ?? ''} selectedAnimalName={selectedAnimalName}  />
-      </CustomBox>
-      <CustomBox gridColumn="1 / span 12" gridRow="15 / span 2">
-        <UserProfile />
+        <CustomFooter />
       </CustomBox>
     </CustomGrid>
   );

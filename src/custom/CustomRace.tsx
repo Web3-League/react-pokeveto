@@ -1,7 +1,7 @@
 import axios from 'axios';
 import React, { useState, useEffect } from 'react';
 import useToken from '../hooks/useToken';
-/*{/veterinaire}*/
+import './styles/CustomRace.css';
 interface CustomRaceProps {
     selectedRace: string;
     setSelectedRace: React.Dispatch<React.SetStateAction<string>>;
@@ -83,10 +83,9 @@ const CustomRace: React.FC<CustomRaceProps> = ({ selectedRace, setSelectedRace }
     };
 
     return (
-        <div>
+        <div className="custom-race-file">
             <h2>Races</h2>
             <div>
-                <div>ANIMAL ID: {selectedRace} USER ID: {userId}</div>
                 <select className="form-control" name="race" value={selectedRace} onChange={handleChange}>
                     <option value="">Select a race</option>
                     {races.map((races) => (
@@ -98,7 +97,6 @@ const CustomRace: React.FC<CustomRaceProps> = ({ selectedRace, setSelectedRace }
             </div>
             {isAdmin && (
                 <div>
-                    <div>ROLE_ADMIN: {isAdmin ? 'Yes' : 'No'}</div>
                     <select className="form-control" name="race" value={selectedRace} onChange={handleSecondDropdownChange}>
                         <option value="">Select a race</option>
                         {races.map((races) => (
