@@ -6,7 +6,6 @@ interface CustomHeaderProps {
     selectedRace: string;
     isAdmin: boolean;
     selectedAnimalName: string;
-
 }
 
 const CustomHeader: React.FC<CustomHeaderProps> = ({ userId, selectedRace, isAdmin, selectedAnimalName }) => {

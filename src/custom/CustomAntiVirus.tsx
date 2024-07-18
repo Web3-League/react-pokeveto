@@ -1,8 +1,7 @@
 import axios from 'axios';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import useToken from '../hooks/useToken';
 import CustomModal from './CustomModalAdmin';
-
 
 interface AntiVirus {
     id: string;
@@ -25,31 +24,31 @@ const CustomAntiVirus: React.FC<CustomAntiVirusProps> = ({ userId, selectedAnima
     const [isAdmin, setIsAdmin] = useState<boolean>(false);
     const { userRoles } = useToken();
 
+    const fetchAntiVirus = useCallback(async () => {
+        try {
+            let response;
+
+            if (userRoles?.includes('ROLE_ADMIN')) {
+                response = await axios.get('http://localhost:8083/api/veterinaire/Admin-antiVirus', { params: { name: selectedAnimalName } });
+            } else {
+                let id = userId;
+                response = await axios.get(`http://localhost:8083/api/veterinaire/antiVirus/${id}/${selectedAnimalName}`);
+            }
+
+            const data = response.data;
+            setAntiVirus(data);
+        } catch (error) {
+            console.error('Error fetching antiVirus:', error);
+        }
+    }, [selectedAnimalName, userId, userRoles]);
+
     useEffect(() => {
         setIsAdmin(userRoles?.includes('ROLE_ADMIN') ?? false);
-
-        const fetchAntiVirus = async () => {
-            try {
-                let response;
-
-                if (userRoles?.includes('ROLE_ADMIN')) {
-                    response = await axios.get('http://localhost:8083/api/veterinaire/Admin-antiVirus', { params: { name: selectedAnimalName } });
-                } else {
-                    let id = userId;
-                    response = await axios.get('http://localhost:8083/api/veterinaire/antiVirus/' + id + '/' + selectedAnimalName);
-                }
-
-                const data = response.data;
-                setAntiVirus(data);
-            } catch (error) {
-                console.error('Error fetching antiVirus:', error);
-            }
-        };
 
         if (selectedAnimalName) {
             fetchAntiVirus();
         }
-    }, [selectedAnimalName, userId, userRoles]);
+    }, [selectedAnimalName, userId, userRoles, fetchAntiVirus]);
 
     const handleChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
         setSelectedAntiVirus(event.target.value);
@@ -76,11 +75,12 @@ const CustomAntiVirus: React.FC<CustomAntiVirusProps> = ({ userId, selectedAnima
             const data = response.data;
             setAntiVirus([...antiVirus, data]);
             setSelectedAntiVirus(data.id);
-            setModalMessage('AntiTique created successfully!');
+            setModalMessage('AntiVirus created successfully!');
             setModalOpen(true);
+            fetchAntiVirus();
         } catch (error) {
             console.error('Error creating antiVirus:', error);
-            setModalMessage('AntiTique created successfully!');
+            setModalMessage('Error creating AntiVirus!');
             setModalOpen(true);
         }
     };
@@ -90,13 +90,14 @@ const CustomAntiVirus: React.FC<CustomAntiVirusProps> = ({ userId, selectedAnima
         try {
             const response = await axios.put(`http://localhost:8083/api/veterinaire/antiVirus/${selectedAnimalName}`, { anti_virus: newAntiVirusValue });
             const data = response.data;
-            const updatedAntiVirus = antiVirus.map((antiVirus) => (antiVirus.nameId === selectedAnimalName ? data : antiVirus));
+            const updatedAntiVirus = antiVirus.map((item) => (item.nameId === selectedAnimalName ? data : item));
             setAntiVirus(updatedAntiVirus);
-            setModalMessage('antiVirus updated successfully!');
+            setModalMessage('AntiVirus updated successfully!');
             setModalOpen(true);
+            fetchAntiVirus();
         } catch (error) {
             console.error('Error updating antiVirus:', error);
-            setModalMessage('antiVirus updated successfully!');
+            setModalMessage('Error updating AntiVirus!');
             setModalOpen(true);
         }
     };
@@ -105,15 +106,16 @@ const CustomAntiVirus: React.FC<CustomAntiVirusProps> = ({ userId, selectedAnima
         event.preventDefault();
         try {
             await axios.delete(`http://localhost:8083/api/veterinaire/antiVirus/${selectedAnimalName}`);
-            const updatedAntiVirus = antiVirus.filter((antiVirus) => antiVirus.id !== selectedAnimalName);
+            const updatedAntiVirus = antiVirus.filter((item) => item.id !== selectedAnimalName);
             setAntiVirus(updatedAntiVirus);
             setSelectedAntiVirus('');
-            setModalMessage('antiVirus deleted successfully!');
-            setModalOpen(true); // Open modal
+            setModalMessage('AntiVirus deleted successfully!');
+            setModalOpen(true);
+            fetchAntiVirus();
         } catch (error) {
             console.error('Error deleting antiVirus:', error);
-            setModalMessage('antiVirus deleted successfully!');
-            setModalOpen(true); // Open modal
+            setModalMessage('Error deleting AntiVirus!');
+            setModalOpen(true);
         }
     };
 
@@ -123,10 +125,10 @@ const CustomAntiVirus: React.FC<CustomAntiVirusProps> = ({ userId, selectedAnima
             <div>
                 <div>SELECTED RACE ID: {selectedAnimalName}</div>
                 <select value={selectedAntiVirus} onChange={handleChange}>
-                    <option value="">Select an antiVirus</option>
+                    <option value="">antiVirus</option>
                     {antiVirus.map((item) => (
                         <option key={item.id} value={item.id}>
-                            {item.anti_virus.toString()}
+                            {item.anti_virus?.toString() ?? 'undefined'}
                         </option>
                     ))}
                 </select>
@@ -135,9 +137,9 @@ const CustomAntiVirus: React.FC<CustomAntiVirusProps> = ({ userId, selectedAnima
                     <option value="edit-mode">Edit Mode</option>
                 </select>
                 <ul>
-                    {antiVirus.map((antiVirus, index) => (
+                    {antiVirus.map((item, index) => (
                         <li key={index}>
-                            {antiVirus.anti_virus.toString()}
+                            {item.anti_virus?.toString() ?? 'undefined'}
                         </li>
                     ))}
                 </ul>
@@ -173,4 +175,5 @@ const CustomAntiVirus: React.FC<CustomAntiVirusProps> = ({ userId, selectedAnima
 };
 
 export default CustomAntiVirus;
+
 

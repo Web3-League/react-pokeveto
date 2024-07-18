@@ -1,5 +1,5 @@
 import axios from 'axios';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import useToken from '../hooks/useToken';
 import './styles/CustomAnimalName.css';
 
@@ -13,32 +13,35 @@ interface CustomAnimalNameProps {
     selectedAnimalName: string;
     setSelectedAnimalName: (animalName: string) => void;
 }
+
 const CustomAnimalName: React.FC<CustomAnimalNameProps> = ({ selectedRace, selectedAnimalName, setSelectedAnimalName }) => {
     const { userId, userRoles } = useToken();
     const [animalNames, setAnimalNames] = useState<AnimalName[]>([]);
     const [newAnimalName, setNewAnimalName] = useState('');
 
-    useEffect(() => {
-        const fetchAnimalNames = async () => {
-            try {
-                    let response;
+    const fetchAnimalNames = useCallback(async () => {
+        try {
+            let response;
 
-                    if (userRoles?.includes('ROLE_ADMIN') && selectedRace) {
-                        response = await axios.get(`http://localhost:8083/api/veterinaire/allanimalname/` + selectedRace);
-                    } else {
-                        let id = userId;
-                        response = await axios.get(`http://localhost:8083/api/veterinaire/animalname/${id}/` + selectedRace);
-                    }
-
-                    setAnimalNames(Array.isArray(response.data) ? response.data : []);
-            } catch (error) {
-                console.error('Error fetching animal names:', error);
-                setAnimalNames([]);
+            if (userRoles?.includes('ROLE_ADMIN') && selectedRace) {
+                response = await axios.get(`http://localhost:8083/api/veterinaire/allanimalname/` + selectedRace);
+            } else {
+                let id = userId;
+                response = await axios.get(`http://localhost:8083/api/veterinaire/animalname/${id}/` + selectedRace);
             }
-        };
 
-        fetchAnimalNames();
+            setAnimalNames(Array.isArray(response.data) ? response.data : []);
+        } catch (error) {
+            console.error('Error fetching animal names:', error);
+            setAnimalNames([]);
+        }
     }, [userId, userRoles, selectedRace]);
+
+    useEffect(() => {
+        if (selectedRace) {
+            fetchAnimalNames();
+        }
+    }, [selectedRace, fetchAnimalNames]);
 
     const handleChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
         setSelectedAnimalName(event.target.value);
@@ -54,8 +57,9 @@ const CustomAnimalName: React.FC<CustomAnimalNameProps> = ({ selectedRace, selec
             });
             const data = response.data;
             setAnimalNames(Array.isArray(data) ? data : []);
-            setSelectedAnimalName(data[0].id); // Correcting to set the ID
+            setSelectedAnimalName(data[0]?.id); // Correcting to set the ID
             setNewAnimalName('');
+            fetchAnimalNames(); // Fetch updated list
         } catch (error) {
             console.error('Error creating animal name:', error);
         }
@@ -88,4 +92,5 @@ const CustomAnimalName: React.FC<CustomAnimalNameProps> = ({ selectedRace, selec
 }
 
 export default CustomAnimalName;
+
 

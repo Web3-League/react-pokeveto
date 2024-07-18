@@ -2,6 +2,7 @@ import axios from 'axios';
 import React, { useState, useEffect } from 'react';
 import useToken from '../hooks/useToken';
 import './styles/CustomRace.css';
+import CustomModal from './CustomModalAdmin';
 interface CustomRaceProps {
     selectedRace: string;
     setSelectedRace: React.Dispatch<React.SetStateAction<string>>;
@@ -20,6 +21,7 @@ const CustomRace: React.FC<CustomRaceProps> = ({ selectedRace, setSelectedRace }
     const [newRaceName, setNewRaceName] = useState('');
     const [isAdmin, setIsAdmin] = useState(false);
     const { userId, userRoles } = useToken();
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
     useEffect(() => {
         setIsAdmin(userRoles?.includes('ROLE_ADMIN') ?? false);
@@ -30,7 +32,6 @@ const CustomRace: React.FC<CustomRaceProps> = ({ selectedRace, setSelectedRace }
                 if (userRoles?.includes('ROLE_ADMIN')) {
                     response = await axios.get('http://localhost:8083/api/races/all');
                 } else {
-                    let id = userId;
                     response = await axios.get('http://localhost:8083/api/races/all');
                 }
                 setRaces(response.data);
@@ -41,10 +42,6 @@ const CustomRace: React.FC<CustomRaceProps> = ({ selectedRace, setSelectedRace }
 
         fetchRaces();
     }, [userId, userRoles, isAdmin]);
-
-    const handleChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-        setSelectedRace(event.target.value);
-    };
 
     const handleSecondDropdownChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
         const value = event.target.value;
@@ -65,15 +62,16 @@ const CustomRace: React.FC<CustomRaceProps> = ({ selectedRace, setSelectedRace }
         event.preventDefault();
         try {
             if (isEditMode && selectedRace) {
-                const response = await axios.put(`http://localhost:8083/api/races/${selectedRace}`, { race_id: newRaceName });
+                const response = await axios.put('http://localhost:8083/api/races/races', { race: newRaceName, race_id: selectedRace });
                 const updatedRace = response.data;
                 setRaces(races.map((race) => (race.id === updatedRace.id ? updatedRace : race)));
                 setSelectedRace(updatedRace.id);
             } else {
-                const response = await axios.post('http://localhost:8083/api/races/race', { race_id: newRaceName });
+                const response = await axios.post('http://localhost:8083/api/races/race', { race: newRaceName });
                 const data = response.data;
                 setRaces([...races, data]);
                 setSelectedRace(data.id);
+                setIsModalOpen(true);
             }
             setNewRaceName('');
             setIsEditMode(false);
@@ -86,42 +84,31 @@ const CustomRace: React.FC<CustomRaceProps> = ({ selectedRace, setSelectedRace }
         <div className="custom-race-file">
             <h2>Races</h2>
             <div>
-                <select className="form-control" name="race" value={selectedRace} onChange={handleChange}>
+                <select className="form-control" name="race" value={selectedRace} onChange={handleSecondDropdownChange}>
                     <option value="">Select a race</option>
-                    {races.map((races) => (
-                        <option key={races.id} value={races.id}>
-                            {races.race}
+                    {races.map((race) => (
+                        <option key={race.id} value={race.id}>
+                            {race.race}
                         </option>
                     ))}
+                    {isAdmin && <option value="edit-mode">Edit Mode</option>}
                 </select>
+                {isEditMode && (
+                    <div>
+                        <input
+                            type="text"
+                            className="form-control"
+                            placeholder="Enter new race name"
+                            value={newRaceName}
+                            onChange={handleInputChange}
+                        />
+                        <form onSubmit={handleSubmit}>
+                            <button type="submit">Submit</button>
+                        </form>
+                    </div>
+                )}  
             </div>
-            {isAdmin && (
-                <div>
-                    <select className="form-control" name="race" value={selectedRace} onChange={handleSecondDropdownChange}>
-                        <option value="">Select a race</option>
-                        {races.map((races) => (
-                            <option key={races.id} value={races.id}>
-                                {races.race}
-                            </option>
-                        ))}
-                        <option value="edit-mode">Edit Mode</option>
-                    </select>
-                    {isEditMode && (
-                        <div>
-                            <input
-                                type="text"
-                                className="form-control"
-                                placeholder="Enter new race name"
-                                value={newRaceName}
-                                onChange={handleInputChange}
-                            />
-                            <form onSubmit={handleSubmit}>
-                                <button type="submit">Submit</button>
-                            </form>
-                        </div>
-                    )}
-                </div>
-            )}
+            <CustomModal message="Race updated successfully!" onClose={() => setIsModalOpen(false)} open={isModalOpen} />
         </div>
     );
 };

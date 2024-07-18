@@ -4,11 +4,11 @@ h1{
 
 .custom-logo{
     display: flex;
-    align-items: center;
-    justify-content: center;
+    justify-content: flex-start;
+
 }
 .logo-girafe{
-    justify-content: flex-start;
+
     background-image: url(../../logo/girafe.svg);
     background-repeat: no-repeat;
     background-position: center;

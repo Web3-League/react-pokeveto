@@ -13,6 +13,7 @@ import CustomAntiVirus from '../custom/CustomAntiVirus';
 import CustomAntiBacterie from '../custom/CustomAntiBacterie';
 import useToken from '../hooks/useToken';
 import CustomAnimalName from '../custom/CustomAnimalName';
+import './styles/homepage.css';
 
 const HomePage: React.FC = () => {
   const { isAuthenticated, loading } = useAuthenticatedPage();

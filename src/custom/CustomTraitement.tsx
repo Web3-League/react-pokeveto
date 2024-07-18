@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import axios from 'axios';
 import useToken from '../hooks/useToken';
 import CustomModal from './CustomModalAdmin';
@@ -22,28 +22,29 @@ const CustomTraitement: React.FC<CustomTraitementProps> = ({ userId, selectedAni
     const [modalOpen, setModalOpen] = useState(false);
     const { userRoles } = useToken();
 
+    
+    const fetchTraitements = useCallback( async () => {
+        try {
+            let response;
+            if (userRoles?.includes('ROLE_ADMIN')) {
+                console.log('animal id :', selectedAnimalName)
+                response = await axios.get('http://localhost:8083/api/veterinaire/Admin-traitement/'+ selectedAnimalName );
+            } else {
+                response = await axios.get(`http://localhost:8083/api/veterinaire/traitement/${userId}/${selectedAnimalName}` );
+            }
+            setTraitements(response.data);
+        } catch (error) {
+            console.error('Error fetching traitements:', error);
+        }
+    }, [selectedAnimalName, userId, userRoles]);
+
     useEffect(() => {
         setIsAdmin(userRoles?.includes('ROLE_ADMIN') ?? false);
-
-        const fetchTraitements = async () => {
-            try {
-                let response;
-                if (userRoles?.includes('ROLE_ADMIN')) {
-                    console.log('animal id :', selectedAnimalName)
-                    response = await axios.get('http://localhost:8083/api/veterinaire/Admin-traitement/'+ selectedAnimalName );
-                } else {
-                    response = await axios.get(`http://localhost:8083/api/veterinaire/traitement/${userId}/${selectedAnimalName}` );
-                }
-                setTraitements(response.data);
-            } catch (error) {
-                console.error('Error fetching traitements:', error);
-            }
-        };
 
         if (selectedAnimalName) {
             fetchTraitements();
         }
-    }, [selectedAnimalName, userId, userRoles]);
+    }, [selectedAnimalName, userId, userRoles, fetchTraitements]);
 
     const handleSecondDropdownChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
         const value = event.target.value;
@@ -74,11 +75,13 @@ const CustomTraitement: React.FC<CustomTraitementProps> = ({ userId, selectedAni
                 setNewTraitementValue('');
                 setModalMessage('Traitement updated successfully!');
                 setModalOpen(true);
+                fetchTraitements();
             } else if (isDeleteMode) {
                 await axios.delete(`http://localhost:8083/api/veterinaire/traitements/${selectedAnimalName}`);
                 setIsDeleteMode(false);
                 setModalMessage('Traitement deleted successfully!');
                 setModalOpen(true);
+                fetchTraitements();
             } else {
                 const response = await axios.put('http://localhost:8083/api/veterinaire/traitements/'+ selectedAnimalName, { traitement: newTraitementValue, animal_name: selectedAnimalName });
                 const data = response.data;
@@ -86,6 +89,7 @@ const CustomTraitement: React.FC<CustomTraitementProps> = ({ userId, selectedAni
                 setNewTraitementValue('');
                 setModalMessage('Traitement created successfully!');
                 setModalOpen(true);
+                fetchTraitements();
             }
         } catch (error) {
             console.error('Error creating traitement:', error);

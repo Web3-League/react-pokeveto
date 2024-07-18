@@ -1,5 +1,5 @@
 import axios from 'axios';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import useToken from '../hooks/useToken';
 import CustomModal from './CustomModalAdmin';
 
@@ -24,30 +24,31 @@ const CustomAntiBacterie: React.FC<CustomAntiBacterieProps> = ({ userId, selecte
     const [isAdmin, setIsAdmin] = useState(false);
     const { userRoles } = useToken();
 
+
+    const fetchAntiBacteries = useCallback(async () => {
+        try {
+            let response;
+            if (userRoles?.includes('ROLE_ADMIN')) {
+                response = await axios.get('http://localhost:8083/api/veterinaire/Admin-antibacteries', { params: { name: selectedAnimalName } });
+            } else {
+                let id = userId;
+                response = await axios.get('http://localhost:8083/api/veterinaire/antibacteries/' + id + '/' + selectedAnimalName);
+            }
+
+            const data = response.data;
+            setAntiBacteries(data);
+        } catch (error) {
+            console.error('Error fetching antiBacteries:', error);
+        }
+    },[selectedAnimalName, userId, userRoles]);
+
     useEffect(() => {
         setIsAdmin(userRoles?.includes('ROLE_ADMIN') ?? false);
-
-        const fetchAntiBacteries = async () => {
-            try {
-                let response;
-                if (userRoles?.includes('ROLE_ADMIN')) {
-                    response = await axios.get('http://localhost:8083/api/veterinaire/Admin-antibacteries', { params: { name: selectedAnimalName } });
-                } else {
-                    let id = userId;
-                    response = await axios.get('http://localhost:8083/api/veterinaire/antibacteries/' + id + '/' + selectedAnimalName);
-                }
-
-                const data = response.data;
-                setAntiBacteries(data);
-            } catch (error) {
-                console.error('Error fetching antiBacteries:', error);
-            }
-        };
 
         if (selectedAnimalName) {
             fetchAntiBacteries();
         }
-    }, [selectedAnimalName, userId, userRoles]);
+    }, [selectedAnimalName, userId, userRoles, fetchAntiBacteries]);
 
     const handleChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
         setSelectedAntiBacterie(event.target.value);
@@ -76,6 +77,7 @@ const CustomAntiBacterie: React.FC<CustomAntiBacterieProps> = ({ userId, selecte
             setSelectedAntiBacterie(data.id);
             setModalMessage('AntiTique created successfully!');
             setModalOpen(true);
+            fetchAntiBacteries();
         } catch (error) {
             console.error('Error creating antiBacterie:', error);
             setModalMessage('AntiTique created successfully!');
@@ -95,6 +97,7 @@ const CustomAntiBacterie: React.FC<CustomAntiBacterieProps> = ({ userId, selecte
             const updatedAntiBacteries = antiBacteries.map((antiBacterie) => (antiBacterie.nameId === selectedAnimalName ? data : antiBacterie));
             setAntiBacteries(updatedAntiBacteries);
             setSelectedAntiBacterie(data.id);
+            fetchAntiBacteries();
         } catch (error) {
             console.error('Error updating antiBacterie:', error);
         }
@@ -111,6 +114,7 @@ const CustomAntiBacterie: React.FC<CustomAntiBacterieProps> = ({ userId, selecte
             const updatedAntiBacteries = antiBacteries.filter((antiBacterie) => antiBacterie.nameId !== selectedAntiBacterie);
             setAntiBacteries(updatedAntiBacteries);
             setSelectedAntiBacterie('');
+            fetchAntiBacteries();
         } catch (error) {
             console.error('Error deleting antiBacterie:', error);
         }
@@ -122,10 +126,10 @@ const CustomAntiBacterie: React.FC<CustomAntiBacterieProps> = ({ userId, selecte
             <div>
                 <div>SELECTED RACE ID: {selectedAnimalName}</div>
                 <select value={selectedAntiBacterie} onChange={handleChange}>
-                    <option value="">Select an antiBacterie</option>
+                    <option value="">antiBacterie</option>
                     {antiBacteries.map((antiBacterie) => (
                         <option key={antiBacterie.id} value={antiBacterie.id}>
-                            {antiBacterie.anti_bacterie.toString()}
+                            {antiBacterie.anti_bacterie.toString()  ?? 'undefined' }
                         </option>
                     ))}
                 </select>
@@ -134,7 +138,7 @@ const CustomAntiBacterie: React.FC<CustomAntiBacterieProps> = ({ userId, selecte
                     <option value="edit-mode">Edit Mode</option>
                 </select>
                 {isEditMode && (
-                    <select value={newAntiBacterieValue.toString()} onChange={handleBooleanChange}>
+                    <select value={newAntiBacterieValue.toString()  ?? 'undefined'} onChange={handleBooleanChange}>
                         <option value="">Select a value</option>
                         <option value="true">True</option>
                         <option value="false">False</option>

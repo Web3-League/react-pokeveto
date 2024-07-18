@@ -1,5 +1,5 @@
 import axios from 'axios';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import useToken from '../hooks/useToken';
 import CustomModal from './CustomModalAdmin';
 
@@ -19,31 +19,30 @@ const CustomAntiTique: React.FC<CustomAntiTiqueProps> = ({ userId, selectedAnima
     const [isDeleteMode, setIsDeleteMode] = useState(false);
     const [newAntiTiqueValue, setNewAntiTiqueValue] = useState(false);
     const [isAdmin, setIsAdmin] = useState(false);
-    const [modalMessage, setModalMessage] = useState<string | null>(null);
+    const [modalMessage, setModalMessage] = useState<string>('');
     const [modalOpen, setModalOpen] = useState(false);
     const { userRoles } = useToken();
 
+    const fetchAntiTiques = useCallback(async () => {
+        try {
+            let response;
+            if (userRoles?.includes('ROLE_ADMIN')) {
+                response = await axios.get(`http://localhost:8083/api/veterinaire/Admin-antitiques/${selectedAnimalName}`, { params: { name: selectedAnimalName } });
+            } else {
+                response = await axios.get(`http://localhost:8083/api/veterinaire/antitiques/${userId}/${selectedAnimalName}`);
+            }
+            setAntiTiques(response.data);
+        } catch (error) {
+            console.error('Error fetching antitiques:', error);
+        }
+    }, [selectedAnimalName, userId, userRoles]);
+
     useEffect(() => {
         setIsAdmin(userRoles?.includes('ROLE_ADMIN') ?? false);
-
-        const fetchAntiTiques = async () => {
-            try {
-                let response;
-                if (userRoles?.includes('ROLE_ADMIN')) {
-                    response = await axios.get('http://localhost:8083/api/veterinaire/Admin-antitiques/' + selectedAnimalName, { params: { name: selectedAnimalName } });
-                } else {
-                    response = await axios.get(`http://localhost:8083/api/veterinaire/antitiques/${userId}/${selectedAnimalName}`);
-                }
-                setAntiTiques(response.data);
-            } catch (error) {
-                console.error('Error fetching antitiques:', error);
-            }
-        };
-
         if (selectedAnimalName) {
             fetchAntiTiques();
         }
-    }, [selectedAnimalName, userId, userRoles]);
+    }, [selectedAnimalName, userId, userRoles, fetchAntiTiques]);
 
     const handleSecondDropdownChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
         const value = event.target.value;
@@ -70,13 +69,13 @@ const CustomAntiTique: React.FC<CustomAntiTiqueProps> = ({ userId, selectedAnima
             const data = response.data;
             setAntiTiques([...antiTiques, data]);
             setNewAntiTiqueValue(false);
-            setIsEditMode(false);
-            setModalMessage('AntiTique created successfully!');
-            setModalOpen(true); // Open modal
+            setModalMessage('AntiTique submitted successfully!');
+            setModalOpen(true);
+            fetchAntiTiques();
         } catch (error) {
-            console.error('Error creating antitique:', error);
-            setModalMessage('Failed to create AntiTique.');
-            setModalOpen(true); // Open modal
+            console.error('Error submitting antitique:', error);
+            setModalMessage('Failed to submit AntiTique.');
+            setModalOpen(true);
         }
     };
 
@@ -92,11 +91,12 @@ const CustomAntiTique: React.FC<CustomAntiTiqueProps> = ({ userId, selectedAnima
             const updatedAntiTiques = antiTiques.map((antiTique) => (antiTique.nameId === selectedAnimalName ? data : antiTique));
             setAntiTiques(updatedAntiTiques);
             setModalMessage('AntiTique updated successfully!');
-            setModalOpen(true); // Open modal
+            setModalOpen(true);
+            fetchAntiTiques();
         } catch (error) {
             console.error('Error updating antitique:', error);
             setModalMessage('Failed to update AntiTique.');
-            setModalOpen(true); // Open modal
+            setModalOpen(true);
         }
     };
 
@@ -107,50 +107,45 @@ const CustomAntiTique: React.FC<CustomAntiTiqueProps> = ({ userId, selectedAnima
             const updatedAntiTiques = antiTiques.filter((antiTique) => antiTique.nameId !== selectedAnimalName);
             setAntiTiques(updatedAntiTiques);
             setModalMessage('AntiTique deleted successfully!');
-            setModalOpen(true); // Open modal
+            setModalOpen(true);
+            fetchAntiTiques();
         } catch (error) {
             console.error('Error deleting antitique:', error);
             setModalMessage('Failed to delete AntiTique.');
-            setModalOpen(true); // Open modal
+            setModalOpen(true);
         }
     };
 
     return (
         <div>
             <h2>AntiTiques</h2>
-            <select value={selectedAnimalName} onChange={handleSecondDropdownChange}>
+            <select onChange={handleSecondDropdownChange}>
                 <option value="">Select an option</option>
-                <option value="edit-mode">Edit Mode</option>
-                <option value="delete-mode">Delete Mode</option>
+                {isAdmin && <option value="edit-mode">Edit Mode</option>}
+                {isAdmin && <option value="delete-mode">Delete Mode</option>}
             </select>
             <ul>
                 {antiTiques.map((antiTique, index) => (
-                    antiTique.anti_tique != null?(
-                    <li key={index}>
-                        {antiTique.anti_tique.toString()}
-                    </li>):null
+                    antiTique.anti_tique != null ? (
+                        <li key={index}>
+                            {antiTique.anti_tique.toString() ?? 'undefined'}
+                        </li>
+                    ) : null
                 ))}
             </ul>
-            {isEditMode && (
+            <div>
+                <select value={newAntiTiqueValue.toString() ?? 'undefined'} onChange={handleBooleanChange}>
+                    <option value="true">True</option>
+                    <option value="false">False</option>
+                </select>
+                <form onSubmit={handleSubmit}>
+                    <button type="submit">Submit</button>
+                </form>
+            </div>
+            {isEditMode && isAdmin && (
                 <div>
-                    <div>SELECTED ANIMAL NAME: {selectedAnimalName}</div>
                     <form onSubmit={handleUpdate}>
-                        <select value={newAntiTiqueValue.toString()} onChange={handleBooleanChange}>
-                            <option value="true">True</option>
-                            <option value="false">False</option>
-                        </select>
                         <button type="submit">Update</button>
-                    </form>
-                </div>
-            )}
-            {isAdmin && (
-                <div>
-                    <form onSubmit={handleSubmit}>
-                        <select value={newAntiTiqueValue.toString()} onChange={handleBooleanChange}>
-                            <option value="true">True</option>
-                            <option value="false">False</option>
-                        </select>
-                        <button type="submit">Create</button>
                     </form>
                 </div>
             )}
@@ -161,11 +156,12 @@ const CustomAntiTique: React.FC<CustomAntiTiqueProps> = ({ userId, selectedAnima
                     </form>
                 </div>
             )}
-            <CustomModal message={modalMessage!} onClose={() => setModalOpen(false)} open={modalOpen} />
+            <CustomModal message={modalMessage} onClose={() => setModalOpen(false)} open={modalOpen} />
         </div>
     );
 };
 
 export default CustomAntiTique;
+
 
 
