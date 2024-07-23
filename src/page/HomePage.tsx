@@ -1,3 +1,4 @@
+// src/page/HomePage.tsx
 import React, { useState } from 'react';
 import { CustomGrid } from '../custom/CustomGrid';
 import CustomBox from '../custom/CustomBox';
@@ -26,8 +27,7 @@ const HomePage: React.FC = () => {
   }
 
   if (!isAuthenticated) {
-    // Passing a dummy handleLogin function for now
-    return <Login handleLogin={async () => { }} />;
+    return <Login />;
   }
 
   return (
@@ -78,4 +78,5 @@ const HomePage: React.FC = () => {
 };
 
 export default HomePage;
+
 

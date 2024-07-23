@@ -1,28 +1,23 @@
-import React, { useContext } from 'react';
+// src/App.tsx
+import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import Register from './auth/register'; // Ensure this path is correct
+import Register from './auth/register';
 import Login from './auth/login';
-import { AuthProvider, AuthContext } from './context/AuthContext';
+import { AuthProvider } from './context/AuthContext';
 import Logout from './auth/logout';
 import HomePage from './page/HomePage';
-
-const PrivateRoute = ({ component: Component }: { component: React.ComponentType }) => {
-  const { token } = useContext(AuthContext) ?? {};
-  console.log('Token in PrivateRoute:', token);
-  return token ? <Component /> : <Navigate to="/login" />;
-};
+import PrivateRoute from './components/PrivateRoute';
 
 const App: React.FC = () => {
   return (
     <AuthProvider>
       <Router>
         <Routes>
-          <Route path="/login" element={<Login handleLogin={function (): Promise<void> {
-            throw new Error('Function not implemented.');} }  />} />
+          <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-          <Route path="/home" element={<PrivateRoute component={HomePage} />} />
-          <Route path="/" element={<Navigate to="/login" />} />
           <Route path="/logout" element={<Logout />} />
+          <Route path="/home" element={<PrivateRoute element={HomePage} />} />
+          <Route path="/" element={<Navigate to="/login" />} />
         </Routes>
       </Router>
     </AuthProvider>
@@ -30,4 +25,10 @@ const App: React.FC = () => {
 };
 
 export default App;
+
+
+
+
+
+
 

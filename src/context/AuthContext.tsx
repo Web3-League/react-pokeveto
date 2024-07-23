@@ -1,8 +1,8 @@
 // src/context/AuthContext.tsx
 import React, { createContext, useState, useEffect, useContext, ReactNode } from 'react';
-import { jwtDecode } from 'jwt-decode';
+import {jwtDecode} from 'jwt-decode';
 import axios from 'axios';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useCookies } from 'react-cookie';
 
 interface AuthContextProps {
   token: string | null;
@@ -33,15 +33,17 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [roles, setRoles] = useState<string[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [cookies, setCookie, removeCookie] = useCookies(['token']);
 
   useEffect(() => {
     const initializeAuth = async () => {
       try {
-        const storedToken = await AsyncStorage.getItem('token');
-        if (storedToken) {
+        const storedToken = cookies.token;
+        console.log('Stored token:', storedToken);
+        if (storedToken && typeof storedToken === 'string') {
           const decodedToken: any = jwtDecode(storedToken);
           setToken(storedToken);
-          setUserId(decodedToken.userId);
+          setUserId(decodedToken.id);
           setRoles(decodedToken.roles);
           setIsAuthenticated(true);
         } else {
@@ -56,17 +58,32 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     };
 
     initializeAuth();
-  }, []);
+  }, [cookies.token]);
 
   const login = async (email: string, password: string) => {
     setLoading(true);
     try {
       const response = await axios.post('http://localhost:8083/api/auth/login', { email, password });
+      console.log('Login response data:', response.data);
+
+      if (!response.data || typeof response.data !== 'object' || !response.data.token) {
+        throw new Error('Invalid response data format');
+      }
+
       const { token } = response.data;
       const decodedToken: any = jwtDecode(token);
-      await AsyncStorage.setItem('token', token);
+      const expires = new Date();
+      expires.setDate(expires.getDate() + 1); // 1 day expiry
+
+      setCookie('token', token, {
+        expires,
+        path: '/',  // Ensure cookie is accessible in the whole site
+        secure: process.env.NODE_ENV === 'production', // Use secure cookies in production
+        sameSite: 'strict',
+      });
+
       setToken(token);
-      setUserId(decodedToken.userId);
+      setUserId(decodedToken.id);
       setRoles(decodedToken.roles);
       setIsAuthenticated(true);
       setError(null);
@@ -83,11 +100,26 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setLoading(true);
     try {
       const response = await axios.post('http://localhost:8083/api/auth/register', { email, password });
+      console.log('Register response data:', response.data);
+
+      if (!response.data || typeof response.data !== 'object' || !response.data.token) {
+        throw new Error('Invalid response data format');
+      }
+
       const { token } = response.data;
       const decodedToken: any = jwtDecode(token);
-      await AsyncStorage.setItem('token', token);
+      const expires = new Date();
+      expires.setDate(expires.getDate() + 1); // 1 day expiry
+
+      setCookie('token', token, {
+        expires,
+        path: '/',  // Ensure cookie is accessible in the whole site
+        secure: process.env.NODE_ENV === 'production', // Use secure cookies in production
+        sameSite: 'strict',
+      });
+
       setToken(token);
-      setUserId(decodedToken.userId);
+      setUserId(decodedToken.id);
       setRoles(decodedToken.roles);
       setIsAuthenticated(true);
       setError(null);
@@ -103,7 +135,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const logout = async () => {
     setLoading(true);
     try {
-      await AsyncStorage.removeItem('token');
+      await axios.post('http://localhost:8083/api/auth/logout');
+      removeCookie('token', { path: '/' });
       setToken(null);
       setUserId(null);
       setRoles(null);
@@ -135,3 +168,4 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 };
 
 export { AuthContext };
+
